@@ -21,7 +21,7 @@ object Token {
     else operatorsSymbols(snip)
 
   // assume all operators left associative
-  val operatorPrecedence: Map[Op, Int] = Seq(Div, Mul, Add, Sub).zipWithIndex.toMap
+  val operatorPrecedence: Map[Op, Int] = Seq(Div, Mul, Add, Sub).reverse.zipWithIndex.toMap
 
   def cmpPrecedence(lhs: Op, rhs: Op): Int =
     operatorPrecedence(lhs) - operatorPrecedence(rhs)

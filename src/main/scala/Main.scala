@@ -10,6 +10,9 @@ object Main {
     val infix = tokenise(input)
     val postfix = toPostfix(infix)
 
+    println(infix)
+    println(postfix)
+
     println(evalPostfix(postfix))
     println(evalInfix(infix))
   }
