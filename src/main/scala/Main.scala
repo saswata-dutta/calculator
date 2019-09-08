@@ -27,6 +27,9 @@ object Main {
     val numStack = mutable.Stack[Double]()
     val opStack = mutable.Stack[Op]()
 
+    def canPushOp(op: Op): Boolean =
+      opStack.isEmpty || opStack.top == OpenParen || cmpPrecedence(op, opStack.top) >= 0
+
     def processOp(op: Op): Unit = {
       assert(numStack.size >= 2, s"Insufficient operands for $op")
       val rhs = numStack.pop()
@@ -51,12 +54,10 @@ object Main {
         if (!found) throw new IllegalArgumentException("Unbalanced Close Paren")
 
       case op: Op =>
-        if (opStack.isEmpty || cmpPrecedence(op, opStack.top) >= 0) opStack.push(op)
-        else {
-          while (opStack.nonEmpty && cmpPrecedence(op, opStack.top) < 0) {
-            processOp(opStack.pop())
-          }
+        while (!canPushOp(op)) {
+          processOp(opStack.pop())
         }
+        opStack.push(op)
     }
 
     while (opStack.nonEmpty) {
