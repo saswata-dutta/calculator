@@ -10,7 +10,7 @@ object Main {
     val infix = tokenise(input)
     val postfix = toPostfix(infix)
 
-    println(eval(postfix))
+    println(evalPostfix(postfix))
   }
 
   def tokenise(in: String): Seq[Token] =
@@ -18,6 +18,31 @@ object Main {
       .map(_.trim)
       .filter(_.nonEmpty)
       .map(Token.create)
+
+  def evalInfix(infix: Seq[Token]): Double = {
+    val numStack = mutable.Stack[Double]()
+    val opStack = mutable.Stack[Op]()
+
+    infix.foreach {
+      case Num(v)    => numStack.push(v)
+      case OpenParen => opStack.push(OpenParen)
+      case CloseParen =>
+        var found = false
+        while (opStack.nonEmpty && !found) {
+          val op = opStack.pop
+          if (op == OpenParen) found = true
+          else {
+            assert(numStack.size >= 2, s"Bad Expression - Insufficient operands for $op")
+            val rhs = numStack.pop()
+            val lhs = numStack.pop()
+            numStack.push(eval(lhs, rhs, op))
+          }
+        }
+
+        if (!found) throw new IllegalArgumentException("Unbalanced Close Paren")
+      case op: Op =>
+    }
+  }
 
   def toPostfix(infix: Seq[Token]): Seq[Token] = {
 
@@ -65,7 +90,7 @@ object Main {
     postfix
   }
 
-  def eval(postfix: Seq[Token]): Double = {
+  def evalPostfix(postfix: Seq[Token]): Double = {
     val numStack = mutable.Stack[Double]()
     postfix.foreach {
       case Num(value) => numStack.push(value)
