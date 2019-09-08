@@ -11,6 +11,7 @@ object Main {
     val postfix = toPostfix(infix)
 
     println(evalPostfix(postfix))
+    println(evalInfix(infix))
   }
 
   def tokenise(in: String): Seq[Token] =
@@ -23,25 +24,44 @@ object Main {
     val numStack = mutable.Stack[Double]()
     val opStack = mutable.Stack[Op]()
 
+    def processOp(op: Op): Unit = {
+      assert(numStack.size >= 2, s"Insufficient operands for $op")
+      val rhs = numStack.pop()
+      val lhs = numStack.pop()
+      numStack.push(eval(lhs, rhs, op))
+    }
+
     infix.foreach {
-      case Num(v)    => numStack.push(v)
+
+      case Num(v) => numStack.push(v)
+
       case OpenParen => opStack.push(OpenParen)
+
       case CloseParen =>
         var found = false
         while (opStack.nonEmpty && !found) {
           val op = opStack.pop
           if (op == OpenParen) found = true
-          else {
-            assert(numStack.size >= 2, s"Bad Expression - Insufficient operands for $op")
-            val rhs = numStack.pop()
-            val lhs = numStack.pop()
-            numStack.push(eval(lhs, rhs, op))
-          }
+          else processOp(op)
         }
 
         if (!found) throw new IllegalArgumentException("Unbalanced Close Paren")
+
       case op: Op =>
+        if (opStack.isEmpty || cmpPrecedence(op, opStack.top) >= 0) opStack.push(op)
+        else {
+          while (opStack.nonEmpty && cmpPrecedence(op, opStack.top) < 0) {
+            processOp(opStack.pop())
+          }
+        }
     }
+
+    while (opStack.nonEmpty) {
+      processOp(opStack.pop())
+    }
+
+    assert(numStack.size == 1, "Insufficient Operators, unused operands left")
+    numStack.pop()
   }
 
   def toPostfix(infix: Seq[Token]): Seq[Token] = {
