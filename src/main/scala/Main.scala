@@ -1,11 +1,12 @@
 import Token._
 
 import scala.collection.mutable
+import scala.io.StdIn
 
 object Main {
 
   def main(args: Array[String]): Unit = {
-    val input = args(0)
+    val input = if (args.length == 1) args(0) else StdIn.readLine()
     val infix = tokenise(input)
     val postfix = toPostfix(infix)
 
@@ -26,10 +27,7 @@ object Main {
     infix.foreach {
       case v: Num => postfix += v
       case op: Op =>
-        if (opStack.isEmpty || opStack.top == OpenParen || op == OpenParen) {
-
-          opStack.push(op)
-        } else if (op == CloseParen) {
+        if (op == CloseParen) {
 
           var found = false
           while (opStack.nonEmpty && !found) {
@@ -38,6 +36,9 @@ object Main {
             else postfix += top
           }
           if (!found) throw new IllegalArgumentException("Unbalanced Close Paren")
+        } else if (opStack.isEmpty || opStack.top == OpenParen || op == OpenParen) {
+
+          opStack.push(op)
         } else {
 
           // todo
@@ -83,6 +84,6 @@ object Main {
     case Mul => lhs * rhs
     case Add => lhs + rhs
     case Sub => lhs - rhs
-    case _   => throw new IllegalArgumentException(s"Bad Operator Eval ${op.symbol}")
+    case _   => throw new IllegalArgumentException(s"Bad Operator Eval $op")
   }
 }
